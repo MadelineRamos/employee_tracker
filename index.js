@@ -31,12 +31,12 @@ const viewRoles = async () => {
 };
 
 const addEmployee = async () => {
-    const [RolesData] = await db.query(`SELECT * FROM role`);
-    const roleList = RolesData.map((eachRole)=> {
+    const [roles] = await db.query(`SELECT * FROM role`);
+    const roleList = roles.map((eachRole)=> {
       return {name: eachRole.title, value: eachRole.id};
-    })
-    const [employeeData] = await db.query(`SELECT * FROM employee`);
-    const employeeList = employeeData.map((eachEmployee)=> {
+    });
+    const [employee] = await db.query(`SELECT * FROM employee`);
+    const employeeList = employee.map((eachEmployee)=> {
       return {name: eachEmployee.first_name + " " + eachEmployee.last_name, value: eachEmployee.id};
     });
 
