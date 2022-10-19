@@ -39,7 +39,6 @@ const addEmployee = async () => {
     const employeeList = employee.map((eachEmployee)=> {
       return {name: eachEmployee.first_name + " " + eachEmployee.last_name, value: eachEmployee.id};
     });
-
     await prompt([
         {
             type: 'input',
@@ -89,7 +88,6 @@ const addDepartment = async () => {
         console.log('--- Department Added ---');
         mainMenu();
     });
-
 };
 
 const addRole = async () => {
@@ -114,7 +112,6 @@ const addRole = async () => {
         name: 'role_department',
         choices: departmentList,
       }
-
     ]).then(function (answers) {
         db.query(`INSERT INTO role SET ?`, {
             title: answers.role,
@@ -124,19 +121,17 @@ const addRole = async () => {
         console.log('--- Role Added ---');
         mainMenu();
     });
-  };
+};
 
 const updateEmployee = async () => {
     const [roles] = await db.query(`SELECT * FROM role`);
     const roleList = roles.map((eachRole)=> {
         return {name: eachRole.title, value: eachRole.id};
     });
-
     const [employees] = await db.query(`SELECT * FROM employee`);
     const employeeList = employees.map((eachEmployee)=> {
         return {name: eachEmployee.first_name + " " + eachEmployee.last_name, value: eachEmployee.id};
     });
-
     await prompt([
         {
             type: 'list',
@@ -150,7 +145,6 @@ const updateEmployee = async () => {
             name: 'employee_role',
             choices: roleList,
         }
-
     ]).then(function (answers){
         db.query(`UPDATE employee SET role_id = ? WHERE id = ?`, [
             answers.employee_role,
