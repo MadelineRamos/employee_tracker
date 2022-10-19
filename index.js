@@ -19,7 +19,7 @@ const viewEmployees = async () => {
 };
 
 const viewDepartments = async () => {
-    const [departmentData] = await db.query('SELECT * FROM department');
+    const [departmentData] = await db.query(`SELECT * FROM department`);
     console.table(departmentData);
     mainMenu();
 };
@@ -31,6 +31,15 @@ const viewRoles = async () => {
 };
 
 const addEmployee = async () => {
+    const [RolesData] = await db.query(`SELECT * FROM role`);
+    const roleList = RolesData.map((eachRole)=> {
+      return {name: eachRole.title, value: eachRole.id};
+    })
+    const [employeeData] = await db.query(`SELECT * FROM employee`);
+    const employeeList = employeeData.map((eachEmployee)=> {
+      return {name: eachEmployee.first_name + " " + eachEmployee.last_name, value: eachEmployee.id};
+    });
+
     await prompt([
         {
             type: 'input',
@@ -45,34 +54,22 @@ const addEmployee = async () => {
         {
             type: 'rawlist',
             message: "What is their role?",
-            name: 'role',
-            choices: ['Craftsmen', 'Commercial Design', '3D Modeling', 'Prototyping' ,'Urban Planner']
+            name: 'role_id',
+            choices: roleList,
+        },
+        {
+          type: "list",
+          name: "manager_id",
+          message: "Who is their manager?",
+          choices: employeeList,
         }
-
     ]).then(function (answers) {
-        switch (answers.role) {
-            case 'Craftsmen':
-                answers.role = 1;
-                break;
-            case 'Commercial Design':
-                answers.role = 2;
-                break;
-            case '3D Modeling':
-                answers.role = 3;
-                break;
-            case 'Prototyping':
-                answers.role = 4;
-                break;
-            case 'Urban Planner':
-                answers.role = 5;
-                break;
-        };
-
         db.query(`INSERT INTO employee SET ?` , {
             first_name: answers.first_name,
             last_name: answers.last_name,
-            role_id: answers.role,
-        })
+            role_id: answers.role_id,
+            manager_id: answers.manager_id
+        });
         console.log('--- Employee Added ---');
         mainMenu();
     });
@@ -84,19 +81,22 @@ const addDepartment = async () => {
             type: 'input',
             message: "What is the name of the department?",
             name: 'department_name'
-        }
-
+        },
     ]).then(function (answers) {
         db.query(`INSERT INTO department SET ?` , {
-            department_name: answers.department_name,
+            department_name: answers.department_name
         });
-
         console.log('--- Department Added ---');
         mainMenu();
     });
+
 };
 
 const addRole = async () => {
+    const [department] = await db.query(`SELECT * FROM department`);
+    const departmentList = department.map((eachDepartment)=> {
+      return {department_name: eachDepartment.department_name, value: eachDepartment.id};
+    });
     await prompt([
       {
         type: 'input',
@@ -112,42 +112,53 @@ const addRole = async () => {
         type: 'list',
         message: 'What department will they be in?',
         name: 'role_department',
-        choices: ['Furniture Designer', 'Interior Designer', 'Industrial Designer', 'UX Designer' ,'Architect'],
+        choices: departmentList,
       }
 
     ]).then(function (answers) {
-      db.query(`INSERT INTO role SET ?`, {
-        title: answers.role,
-        salary: answers.salary,
-        department_id: answers.role_department,
-      });
-
-        console.log('--- Department Added ---');
+        db.query(`INSERT INTO role SET ?`, {
+            title: answers.role,
+            salary: answers.salary,
+            department_id: answers.role_department
+        });
+        console.log('--- Role Added ---');
         mainMenu();
     });
   };
 
 const updateEmployee = async () => {
+    const [roles] = await db.query(`SELECT * FROM role`);
+    const roleList = roles.map((eachRole)=> {
+        return {name: eachRole.title, value: eachRole.id};
+    });
+
+    const [employees] = await db.query(`SELECT * FROM employee`);
+    const employeeList = employees.map((eachEmployee)=> {
+        return {name: eachEmployee.first_name + " " + eachEmployee.last_name, value: eachEmployee.id};
+    });
+
     await prompt([
         {
             type: 'list',
             message: "Who would you like to update?",
             name: 'employee_name',
+            choices: employeeList,
         },
         {
             type: 'list',
             message: "What role would you like to update them to?",
             name: 'employee_role',
-            choices: formattedRole,
+            choices: roleList,
         }
+
     ]).then(function (answers){
         db.query(`UPDATE employee SET role_id = ? WHERE id = ?`, [
             answers.employee_role,
             answers.employee_name,
         ]);
-    });
         console.log ('--- Employee Updated ---');
         mainMenu();
+    });
 };
 
 const mainMenu = async () => {
@@ -204,26 +215,21 @@ switch (choice) {
         viewRoles();
         break;
     case "ADD_EMPLOYEE":
-      addEmployee();
-      break;
+        addEmployee();
+        break;
     case "UPDATE_EMPLOYEE":
-      updateEmployee();
-      break;
+        updateEmployee();
+        break;
     case "ADD_DEPARTMENT":
-      addDepartment();
-      break;
+        addDepartment();
+        break;
     case "ADD_ROLE":
-      addRole();
+        addRole();
     case 'EXIT':
         process.exit();
         break;
     default:
         process.exit();
 };
-
-
-
-
-}
-
+};
 mainMenu();
